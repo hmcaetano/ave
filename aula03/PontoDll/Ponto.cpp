@@ -12,11 +12,10 @@
 Ponto::Ponto(int x, int y){
 	this->_x = x;
 	this->_y = y;
-	this->_module = sqrt((double)_x*_x + _y*_y);
 }
 
 double Ponto::getModule() {	 
-	return _module;
+	return sqrt((double)_x*_x + _y*_y);
 }
 
 double Ponto::diff(Ponto * p) {
@@ -27,6 +26,6 @@ double Ponto::diff(Ponto * p) {
 
 
 void Ponto::Print(char * label){
-	printf("SUPER V1.7 %s: (x = %d, y = %d)\n", label, _x, _y);
+	printf("SUPER Special V2.3 %s: (x = %d, y = %d)\n", label, _x, _y);
 }
 

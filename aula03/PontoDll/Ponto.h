@@ -16,7 +16,6 @@
  */
 class PONTO_API Ponto {
 public:
-	double _module;
 	int _y, _x;
 	Ponto(int x, int y);
 	double Ponto::getModule();
