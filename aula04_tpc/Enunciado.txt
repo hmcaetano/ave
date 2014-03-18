@@ -1,0 +1,31 @@
+0. Para compilar os ficheiros IL pode usar o comando: ilasm /DLL
+
+1. Fazer um esquema em papel que mostra o estado do Stack, Locals e Arguments após a execução de cada uma das instruções Il, de cada programa.
+
+2. Determinar o algoritmo implementado por cada uma das funções Calcula, das classes CompA e CompB, definidos na linguagem IL em cada um dos ficheiros CompA.il e CompB.il. 
+
+3. Escrever cada um dos algoritmos na linguagem de programação C# e verificar que têm o mesmo comportamento apresentado anteriormente.
+
+Para ajudar a comprender o comportamento dos algoritmos é fornecida ainda a aplicação TestCompAB.cs que deverá ser compilada com referência aos dois assemblies que contêm os tipos CompA e CompB. 
+
+Cada um dos ficheiros IL deverá ser compilado para o respectivo assembly CompA.dll e CompB.dll, usando a ferramenta ilasm.
+
+Anexo (informação retirada do MSDN. Poderão encontrar a especificação de outros operadores IL na classe OpCodes):
+
+|------------------------------------------------------------------------------------|
+| cgt	    | Compares two values. If the first value is greater than the second,    |
+|           | the integer value 1 (int32) is pushed onto the evaluation stack;       |
+|           | otherwise 0 (int32) is pushed onto the evaluation stack.               |
+|------------------------------------------------------------------------------------|
+| brfalse.s | Transfers control to a target instruction (short form) if value is     |
+|           | false, null, or zero                                                   |
+|------------------------------------------------------------------------------------|
+| br.s	    | Unconditionally transfers control to a target instruction (short form).|
+|------------------------------------------------------------------------------------|
+| ldc.i4.0  | Pushes the integer value of 0 onto the evaluation stack as an int32.   |
+|------------------------------------------------------------------------------------|
+| ldc.i4.1  | Pushes the integer value of 1 onto the evaluation stack as an int32.   |
+|------------------------------------------------------------------------------------| 
+| ldc.i4.s  | Pushes the supplied value onto the evaluation stack as an int32,       |
+|           | short form                                                             |
+|------------------------------------------------------------------------------------|
