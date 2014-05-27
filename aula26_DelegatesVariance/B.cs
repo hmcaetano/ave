@@ -7,9 +7,9 @@ public class B {
         return new ObsRes(value.arg, "Console");
     }
 	
-	public static ObsRes CovariantConsoleHandler(ObsArg value) {
+	public static ObsResExtended CovariantConsoleHandler(ObsArg value) {
         Console.WriteLine("CovariantConsoleHandler = " + value.arg);
-        return new ObsRes(value.arg, "Covariant");
+        return new ObsResExtended(value.arg, "Covariant");
     }
 
 }
