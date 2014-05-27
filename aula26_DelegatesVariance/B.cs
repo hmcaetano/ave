@@ -6,5 +6,10 @@ public class B {
         Console.WriteLine("ConsoleHandler = " + value.arg);
         return new ObsRes(value.arg, "Console");
     }
+	
+	public static ObsRes CovariantConsoleHandler(ObsArg value) {
+        Console.WriteLine("CovariantConsoleHandler = " + value.arg);
+        return new ObsRes(value.arg, "Covariant");
+    }
 
 }

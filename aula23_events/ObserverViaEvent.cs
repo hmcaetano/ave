@@ -38,6 +38,12 @@ public delegate void Observer(int value);
 
 class Counter
 {
+	int maxHandlers;
+	int currHandlers;
+	
+	public Counter(int handlers){
+		maxHandlers = handlers;
+	}
     /*
     private Observer obs;
 
@@ -52,9 +58,24 @@ class Counter
     }
     */
 
+	
     // substitui as linhas de cima.
     public event Observer CounterEvent;
 
+	public Observer operator +=(this Observer, Observer o){
+		if(currHandlers >= maxHandlers)
+			throw new UnsupportedOperationException();
+		++currHandlers;
+		return Counter += o;
+	}
+	
+	public Observer operator -=(this Observer, Observer o){
+		if(currHandlers <= 0)
+			throw new UnsupportedOperationException();
+		--currHandlers;
+		return Counter -= o;
+	}
+	
     public void NotifyObservers(int n)
     {
         //if any callbacks are specified, call them

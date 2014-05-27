@@ -19,6 +19,12 @@ public class ObsArg
     }
 }
 
+public class ObsResExtended : ObsRes {
+	public ObsResExtended(int r, string m) : base(r, m)
+	{
+	}
+}
+
 public delegate ObsRes Observer(ObsArg value);
 
 
