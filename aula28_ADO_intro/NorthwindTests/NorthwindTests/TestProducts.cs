@@ -10,34 +10,27 @@ namespace NorthwindTests
         [TestMethod]
         public void test_products_count_all()
         {
-
-            SqlConnection c = null;
-            SqlCommand cmd = null;
-            SqlDataReader dr = null;
-            try
+            using (SqlConnection c = new SqlConnection())
             {
-                c = new SqlConnection();
                 c.ConnectionString = @"
-                Data Source=DRAGAO\SQLEXPRESS;
-				Initial Catalog=Northwind;
-                Integrated Security=True";
+                    Data Source=DRAGAO\SQLEXPRESS;
+				    Initial Catalog=Northwind;
+                    Integrated Security=True";
                 c.Open();
 
-                cmd = c.CreateCommand();
-                cmd.CommandText = "SELECT [ProductID], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products]";
+                using (SqlCommand cmd = c.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT [ProductID], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products]";
 
-                dr = cmd.ExecuteReader();
-                int count = 0;
-                while (dr.Read())
-                    count++;
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        int count = 0;
+                        while (dr.Read())
+                            count++;
 
-                Assert.AreEqual(77, count);
-            }
-            finally
-            {
-                dr.Dispose();
-                cmd.Dispose();
-                c.Dispose();
+                        Assert.AreEqual(77, count);
+                    }
+                }
             }
         }
     }
