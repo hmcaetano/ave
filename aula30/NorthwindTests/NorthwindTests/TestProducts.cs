@@ -66,9 +66,10 @@ namespace NorthwindTests
         {
             using (SqlTransaction trx = c.BeginTransaction())
             {
-                using (SqlCommand cmd = c.CreateCommand())
+                using (SqlCommand cmd = Product.sqlGetById(c))
                 {
-                    cmd.CommandText = Product.sqlGetById(7);
+                    
+                    cmd.Parameters["@ProductId"].Value = 7;
                     cmd.Transaction = trx;
                     Product p = null;
                     using (SqlDataReader dr = cmd.ExecuteReader())
@@ -79,11 +80,17 @@ namespace NorthwindTests
                     }
 
                     p.UnitPrice = 78;
-                    cmd.CommandText = Product.sqlUpdate(p);
+                    using (SqlCommand cmdUpdate = Product.sqlUpdate(c))
+                    {
+                        cmdUpdate.Transaction = trx;
+                        cmdUpdate.Parameters["@ProductName"].Value = p.ProductName;
+                        cmdUpdate.Parameters["@UnitPrice"].Value = p.UnitPrice;
+                        cmdUpdate.Parameters["@UnitsInStock"].Value = p.UnitsInStock;
+                        cmdUpdate.Parameters["@ProductID"].Value = p.ProductID;
 
-                    cmd.ExecuteNonQuery();
-
-                    cmd.CommandText = Product.sqlGetById(p.ProductID);
+                        cmdUpdate.ExecuteNonQuery();
+                    }
+                    cmd.Parameters["@ProductId"].Value = p.ProductID; // O mesmo cmd com novo Bind
                     cmd.Transaction = trx;
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {

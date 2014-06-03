@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -10,19 +11,27 @@ namespace NorthwindTests
     public class Product 
     {
         public static readonly string SQL_GET_ALL = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products]";
-        public static readonly string SQL_GET_BY_ID = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products] WHERE ProductId = {0}";
-        public static readonly string SQL_UPDATE = "UPDATE Products SET UnitPrice = {0}, UnitsInStock = {1} WHERE ProductId = {2}";
+        public static readonly string SQL_GET_BY_ID = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products] WHERE ProductId = @ProductId";
+        public static readonly string SQL_UPDATE = "UPDATE Products SET ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock WHERE ProductId = @ProductId";
 
-        public static string sqlGetById(int id)
+        public static SqlCommand sqlGetById(SqlConnection c)
         {
-            string res = String.Format(SQL_GET_BY_ID, id);
-            return res;
+            SqlCommand cmd = c.CreateCommand();
+            cmd.CommandText = SQL_GET_BY_ID;
+            cmd.Parameters.Add(new SqlParameter("@ProductId",SqlDbType.Int));
+            return cmd;
         }
 
 
-        public static string sqlUpdate(Product p)
+        public static SqlCommand sqlUpdate(SqlConnection c)
         {
-            return  String.Format(SQL_UPDATE, p.UnitPrice, p.UnitsInStock, p.ProductID);
+            SqlCommand cmd = c.CreateCommand();
+            cmd.CommandText = SQL_UPDATE;
+            cmd.Parameters.Add(new SqlParameter("@ProductId", SqlDbType.Int));
+            cmd.Parameters.Add(new SqlParameter("@ProductName", SqlDbType.VarChar));
+            cmd.Parameters.Add(new SqlParameter("@UnitsInStock", SqlDbType.Int));
+            cmd.Parameters.Add(new SqlParameter("@UnitPrice", SqlDbType.Decimal));
+            return cmd;
         }
 
 
