@@ -51,9 +51,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Product.cs" />
     <Compile Include="TestProducts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NorthwindDataMappers\NorthwindDataMappers.csproj">
+      <Project>{42b34cc8-3ca9-422f-9d0a-8996b53e6656}</Project>
+      <Name>NorthwindDataMappers</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
