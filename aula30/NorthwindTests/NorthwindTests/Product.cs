@@ -1,0 +1,74 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace NorthwindTests
+{
+    public class Product 
+    {
+        public static readonly string SQL_GET_ALL = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products]";
+        public static readonly string SQL_GET_BY_ID = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products] WHERE ProductId = @ProductId";
+        public static readonly string SQL_UPDATE = "UPDATE Products SET ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock WHERE ProductId = @ProductId";
+
+        public static SqlCommand sqlGetById(SqlConnection c)
+        {
+            SqlCommand cmd = c.CreateCommand();
+            cmd.CommandText = SQL_GET_BY_ID;
+            cmd.Parameters.Add(new SqlParameter("@ProductId",SqlDbType.Int));
+            return cmd;
+        }
+
+
+        public static SqlCommand sqlUpdate(SqlConnection c)
+        {
+            SqlCommand cmd = c.CreateCommand();
+            cmd.CommandText = SQL_UPDATE;
+            cmd.Parameters.Add(new SqlParameter("@ProductId", SqlDbType.Int));
+            cmd.Parameters.Add(new SqlParameter("@ProductName", SqlDbType.VarChar));
+            cmd.Parameters.Add(new SqlParameter("@UnitsInStock", SqlDbType.Int));
+            cmd.Parameters.Add(new SqlParameter("@UnitPrice", SqlDbType.Decimal));
+            return cmd;
+        }
+
+
+        public int ProductID { get { return prodId; } }
+        public string ProductName { set; get; }
+        public decimal UnitPrice { set; get; }
+        public short UnitsInStock { set; get; }
+
+        private readonly int prodId;
+
+        public Product(
+            int productId,
+            string productName,
+            decimal unitPrice,
+            short unitsInStock
+)
+        {
+            prodId = productId;
+            ProductName = productName;
+            UnitPrice = unitPrice;
+            UnitsInStock = unitsInStock;
+        }
+
+        public Product(SqlDataReader dr)
+        {
+            prodId = (int) dr["ProductId"];
+            ProductName = (string)dr["ProductName"];
+            UnitPrice = (decimal)dr["UnitPrice"];
+            UnitsInStock = (short)dr["UnitsInStock"];
+        }
+
+        public override string ToString()
+        {
+            return "Product [id=" + ProductID + ", name=" + ProductName + ", price=" + UnitPrice
+                    + ", stock=" + UnitsInStock + "]";
+        }
+
+    }
+
+}
