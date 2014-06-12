@@ -11,7 +11,7 @@ namespace NorthwindDataMappers
     public class ProductDataMapper: IDataMapper<Product>
     {
         public static readonly string SQL_GET_ALL = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products]";
-        public static readonly string SQL_GET_BY_ID = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products] WHERE ProductId = @ProductId";
+        public static readonly string SQL_GET_BY_ID = SQL_GET_ALL + " WHERE ProductId = @ProductId";
         public static readonly string SQL_UPDATE = "UPDATE Products SET ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock WHERE ProductId = @ProductId";
         public static readonly string SQL_INSERT = "INSERT INTO Products (ProductName, UnitPrice, UnitsInStock) OUTPUT inserted.ProductID VALUES (@ProductName, @UnitPrice, @UnitsInStock) ";
 
@@ -53,8 +53,26 @@ namespace NorthwindDataMappers
 
         public Product GetById(int id)
         {
-            throw new NotImplementedException();
+            return GetById(id, null);
         }
+        public Product GetById(int id, SqlTransaction trx)
+        {
+            using (SqlCommand cmdGet = sqlGetById(c))
+            {
+                if (trx != null)
+                    cmdGet.Transaction = trx;
+
+                cmdGet.Parameters["@ProductId"].Value = id;
+                using (SqlDataReader dr = cmdGet.ExecuteReader())
+                {
+                    dr.Read();
+                    Product newProd = new Product(
+                        (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3]);
+                    return newProd;
+                }
+            }
+        }
+
 
         public IEnumerable<Product> GetAll()
         {
@@ -63,10 +81,12 @@ namespace NorthwindDataMappers
                 cmdGet.CommandText = SQL_GET_ALL;
                 using (SqlDataReader dr = cmdGet.ExecuteReader())
                 {
-                    dr.Read();
-                    Product newProd = new Product(
-                        (int) dr[0], (string) dr[1], (decimal)dr[2], (short) dr[3]);
-                    yield return newProd;
+                    while (dr.Read())
+                    {
+                        Product newProd = new Product(
+                            (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3]);
+                        yield return newProd;
+                    }
                 }
             }
 
@@ -74,17 +94,47 @@ namespace NorthwindDataMappers
 
         public void Update(Product val)
         {
-            throw new NotImplementedException();
+            Update(val, null);
         }
+
+        public void Update(Product p, SqlTransaction trx)
+        {
+            using (SqlCommand cmdUpdate = sqlUpdate(c))
+            {
+                if(trx != null) 
+                    cmdUpdate.Transaction = trx;
+                cmdUpdate.Parameters["@ProductName"].Value = p.ProductName;
+                cmdUpdate.Parameters["@UnitPrice"].Value = p.UnitPrice;
+                cmdUpdate.Parameters["@UnitsInStock"].Value = p.UnitsInStock;
+                cmdUpdate.Parameters["@ProductID"].Value = p.ProductID;
+
+                cmdUpdate.ExecuteNonQuery();
+            }
+        }
+
 
         public void Delete(Product val)
         {
             throw new NotImplementedException();
         }
 
-        public void Insert(Product val)
-        {
-            throw new NotImplementedException();
+        public void Insert(Product val) {
+            Insert(val, null);
         }
+
+        public void Insert(Product val, SqlTransaction trx)
+        {
+            using (SqlCommand cmdInsert = sqlInsert(c))
+            {
+                cmdInsert.Parameters["@ProductName"].Value = val.ProductName;
+                cmdInsert.Parameters["@UnitPrice"].Value = val.UnitPrice;
+                cmdInsert.Parameters["@UnitsInStock"].Value = val.UnitsInStock;
+                if(trx != null) 
+                    cmdInsert.Transaction = trx;
+                val.ProductID = (int)cmdInsert.ExecuteScalar();
+            }
+
+        }
+
     }
 }
