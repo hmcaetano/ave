@@ -13,7 +13,7 @@ namespace NorthwindDataMappers
         public string ProductName { set; get; }
         public decimal UnitPrice { set; get; }
         public short UnitsInStock { set; get; }
-
+        public Supplier Supplier { set; get; }
 
         public Product() { }
 
@@ -21,13 +21,15 @@ namespace NorthwindDataMappers
             int productId,
             string productName,
             decimal unitPrice,
-            short unitsInStock
-)
+            short unitsInStock,
+            Supplier sup
+        )
         {
             ProductID = productId;
             ProductName = productName;
             UnitPrice = unitPrice;
             UnitsInStock = unitsInStock;
+            Supplier = sup;
         }
 
         public override string ToString()

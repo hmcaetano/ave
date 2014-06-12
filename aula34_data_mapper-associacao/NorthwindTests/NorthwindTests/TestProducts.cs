@@ -36,7 +36,7 @@ namespace NorthwindTests
         [TestMethod]
         public void test_products_query_count()
         {
-            ProductDataMapper mapper = new ProductDataMapper(c);
+            ProductDataMapper mapper = new ProductDataMapper(c, new SupplierDataMapper(c));
             Assert.AreEqual(77, mapper.GetAll().Count());
             
         }
@@ -53,8 +53,8 @@ namespace NorthwindTests
 
             using (SqlTransaction trx = c.BeginTransaction())
             {
-                
-                ProductDataMapper mapper = new ProductDataMapper(c);
+
+                ProductDataMapper mapper = new ProductDataMapper(c, new SupplierDataMapper(c));
                 mapper.Insert(prod, trx);
 
                 Product newProd = mapper.GetById(prod.ProductID, trx);
@@ -73,7 +73,7 @@ namespace NorthwindTests
         {
             using (SqlTransaction trx = c.BeginTransaction())
             {
-                ProductDataMapper mapper = new ProductDataMapper(c);
+                ProductDataMapper mapper = new ProductDataMapper(c, new SupplierDataMapper(c));
                 Product p = mapper.GetById(7, trx);  // 1. Fetch de um Product da BD
                 Assert.AreEqual(30.0m, p.UnitPrice); // 2. confirmamos o estado inicial de product
                 

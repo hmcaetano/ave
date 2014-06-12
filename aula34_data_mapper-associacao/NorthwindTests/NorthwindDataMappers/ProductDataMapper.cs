@@ -10,7 +10,7 @@ namespace NorthwindDataMappers
 {
     public class ProductDataMapper: IDataMapper<Product>
     {
-        public static readonly string SQL_GET_ALL = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock] FROM [Northwind].[dbo].[Products]";
+        public static readonly string SQL_GET_ALL = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock], [SupplierID] FROM [Northwind].[dbo].[Products]";
         public static readonly string SQL_GET_BY_ID = SQL_GET_ALL + " WHERE ProductId = @ProductId";
         public static readonly string SQL_UPDATE = "UPDATE Products SET ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock WHERE ProductId = @ProductId";
         public static readonly string SQL_INSERT = "INSERT INTO Products (ProductName, UnitPrice, UnitsInStock) OUTPUT inserted.ProductID VALUES (@ProductName, @UnitPrice, @UnitsInStock) ";
@@ -46,9 +46,12 @@ namespace NorthwindDataMappers
         }
 
         private readonly SqlConnection c;
+        private readonly IDataMapper<Supplier> suppMapper;
 
-        public ProductDataMapper(SqlConnection c) {
+        public ProductDataMapper(SqlConnection c, IDataMapper<Supplier> suppMapper)
+        {
             this.c = c;
+            this.suppMapper = suppMapper;
         }
 
         public Product GetById(int id)
@@ -67,7 +70,11 @@ namespace NorthwindDataMappers
                 {
                     dr.Read();
                     Product newProd = new Product(
-                        (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3]);
+                        (int)dr[0], 
+                        (string)dr[1], 
+                        (decimal)dr[2], 
+                        (short)dr[3], 
+                        suppMapper.GetById((int) dr[4]));
                     return newProd;
                 }
             }
@@ -84,7 +91,7 @@ namespace NorthwindDataMappers
                     while (dr.Read())
                     {
                         Product newProd = new Product(
-                            (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3]);
+                            (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3], suppMapper.GetById((int) dr[4]));
                         yield return newProd;
                     }
                 }
