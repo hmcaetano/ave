@@ -11,7 +11,7 @@ namespace NorthwindTests
     {
 
         private string connstr = @"
-                    Data Source=DRAGAO\SQLEXPRESS;
+                    Data Source=HELIOCAETANO-PC;
 				    Initial Catalog=Northwind;
                     Integrated Security=True";
             

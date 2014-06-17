@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NorthwindDataMappers
 {
-    public class SupplierDataMapper: AbstractDatatMapper<Supplier>
+    public class SupplierDataMapper: AbstractDataMapper<Supplier>
     {
         public static readonly string SQL_GET_ALL = "SELECT [SupplierID],[CompanyName] FROM [Northwind].[dbo].[Suppliers]";
         public static readonly string SQL_GET_BY_ID = SQL_GET_ALL + " WHERE SupplierID = @SupplierID";
@@ -49,7 +49,7 @@ namespace NorthwindDataMappers
 
         public override  Supplier GetById(int id)
         {
-            using (SqlCommand cmdGet = sqlGetById(getConnection()))
+            using (SqlCommand cmdGet = sqlGetById(GetConnection()))
             {
                 if (trx != null)
                     cmdGet.Transaction = trx;
@@ -63,34 +63,60 @@ namespace NorthwindDataMappers
             }
         }
 
-
-        public override IEnumerable<Supplier> GetAll()
+        protected override string GetSqlGetAllQuery()
         {
-            using (SqlCommand cmdGet = getConnection().CreateCommand())
-            {
-                cmdGet.CommandText = SQL_GET_ALL;
-                using (SqlDataReader dr = cmdGet.ExecuteReader())
-                {
-                    while (dr.Read())
-                    {
-                        yield return new Supplier((int)dr[0], (string)dr[1]);
-                    }
-                }
-            }
-
+            throw new NotImplementedException();
         }
 
-        public override void Update(Supplier val)
-        {
-            using (SqlCommand cmdUpdate = sqlUpdate(getConnection()))
-            {
-                if(trx != null) 
-                    cmdUpdate.Transaction = trx;
-                cmdUpdate.Parameters["@CompanyName"].Value = val.CompanyName;
-                cmdUpdate.Parameters["@SupplierID"].Value = val.SupplierID;
 
-                cmdUpdate.ExecuteNonQuery();
-            }
+        //public IEnumerable<Supplier> GetAll()
+        //{
+        //    using (SqlCommand cmdGet = GetConnection().CreateCommand())
+        //    {
+        //        cmdGet.CommandText = SQL_GET_ALL;
+        //        using (SqlDataReader dr = cmdGet.ExecuteReader())
+        //        {
+        //            while (dr.Read())
+        //            {
+        //                yield return new Supplier((int)dr[0], (string)dr[1]);
+        //            }
+        //        }
+        //    }
+
+        //}
+
+        protected override Supplier NewInstance(SqlDataReader dr)
+        {
+            return new Supplier((int)dr[0], (string)dr[1]);
+        }
+
+        protected override SqlCommand GetUpdateCommand(SqlConnection connection)
+        {
+            return sqlUpdate(connection);
+        }
+
+        //public override void Update(Supplier val)
+        //{
+        //    using (SqlCommand cmdUpdate = sqlUpdate(GetConnection()))
+        //    {
+        //        if(trx != null) 
+        //            cmdUpdate.Transaction = trx;
+        //        cmdUpdate.Parameters["@CompanyName"].Value = val.CompanyName;
+        //        cmdUpdate.Parameters["@SupplierID"].Value = val.SupplierID;
+
+        //        cmdUpdate.ExecuteNonQuery();
+        //    }
+        //}
+
+        protected override void SetSqlUpdateParameters(SqlCommand command, Supplier val)
+        {
+            SetSqlParameters(command, val);
+            command.Parameters["@SupplierID"].Value = val.SupplierID;
+        }
+
+        protected override void SetSqlInsertParameters(SqlCommand command, Supplier val)
+        {
+            SetSqlParameters(command, val);
         }
 
 
@@ -99,16 +125,32 @@ namespace NorthwindDataMappers
             throw new NotImplementedException();
         }
 
-        public override void Insert(Supplier val) 
+        protected override SqlCommand GetInsertCommand(SqlConnection connection)
         {
-            using (SqlCommand cmdInsert = sqlInsert(getConnection()))
-            {
-                cmdInsert.Parameters["@CompanyName"].Value = val.CompanyName;
-                if(trx != null) 
-                    cmdInsert.Transaction = trx;
-                val.SupplierID = (int)cmdInsert.ExecuteScalar();
-            }
+            return sqlInsert(GetConnection());
+        }
 
+        private void SetSqlParameters(SqlCommand command, Supplier val)
+        {
+            command.Parameters["@CompanyName"].Value = val.CompanyName;
+        }
+
+        //public override void Insert(Supplier val) 
+        //{
+        //    using (SqlCommand cmdInsert = sqlInsert(GetConnection()))
+        //    {
+        //        cmdInsert.Parameters["@CompanyName"].Value = val.CompanyName;
+        //        if(trx != null) 
+        //            cmdInsert.Transaction = trx;
+        //        val.SupplierID = (int)cmdInsert.ExecuteScalar();
+        //    }
+
+        //}
+
+        public override int Insert(Supplier val)
+        {
+            val.SupplierID = base.Insert(val);
+            return 0;
         }
 
     }
