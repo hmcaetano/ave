@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace NorthwindDataMappers
 {
-    public class ProductDataMapper: IDataMapper<Product>
+    public class ProductDataMapper : AbstractDatatMapper<Product>
     {
         public static readonly string SQL_GET_ALL = "SELECT [ProductId], [ProductName], [UnitPrice], [UnitsInStock], [SupplierID] FROM [Northwind].[dbo].[Products]";
         public static readonly string SQL_GET_BY_ID = SQL_GET_ALL + " WHERE ProductId = @ProductId";
         public static readonly string SQL_UPDATE = "UPDATE Products SET ProductName = @ProductName, UnitPrice = @UnitPrice, UnitsInStock = @UnitsInStock WHERE ProductId = @ProductId";
-        public static readonly string SQL_INSERT = "INSERT INTO Products (ProductName, UnitPrice, UnitsInStock) OUTPUT inserted.ProductID VALUES (@ProductName, @UnitPrice, @UnitsInStock) ";
+        public static readonly string SQL_INSERT = "INSERT INTO Products (ProductName, UnitPrice, UnitsInStock, SupplierID) OUTPUT inserted.ProductID VALUES (@ProductName, @UnitPrice, @UnitsInStock, @SupplierID) ";
 
         public static SqlCommand sqlGetById(SqlConnection c)
         {
@@ -42,25 +42,20 @@ namespace NorthwindDataMappers
             cmd.Parameters.Add(new SqlParameter("@ProductName", SqlDbType.VarChar));
             cmd.Parameters.Add(new SqlParameter("@UnitsInStock", SqlDbType.Int));
             cmd.Parameters.Add(new SqlParameter("@UnitPrice", SqlDbType.Decimal));
+            cmd.Parameters.Add(new SqlParameter("@SupplierID", SqlDbType.Int));
             return cmd;
         }
 
-        private readonly SqlConnection c;
         private readonly IDataMapper<Supplier> suppMapper;
 
-        public ProductDataMapper(SqlConnection c, IDataMapper<Supplier> suppMapper)
+        public ProductDataMapper(String connStr, IDataMapper<Supplier> suppMapper):base(connStr)
         {
-            this.c = c;
             this.suppMapper = suppMapper;
         }
 
-        public Product GetById(int id)
+        public override Product GetById(int id)
         {
-            return GetById(id, null);
-        }
-        public Product GetById(int id, SqlTransaction trx)
-        {
-            using (SqlCommand cmdGet = sqlGetById(c))
+            using (SqlCommand cmdGet = sqlGetById(getConnection()))
             {
                 if (trx != null)
                     cmdGet.Transaction = trx;
@@ -70,20 +65,20 @@ namespace NorthwindDataMappers
                 {
                     dr.Read();
                     Product newProd = new Product(
-                        (int)dr[0], 
-                        (string)dr[1], 
-                        (decimal)dr[2], 
-                        (short)dr[3], 
-                        suppMapper.GetById((int) dr[4]));
+                        (int)dr[0],
+                        (string)dr[1],
+                        (decimal)dr[2],
+                        (short)dr[3],
+                        suppMapper.GetById((int)dr[4]));
                     return newProd;
                 }
             }
         }
 
 
-        public IEnumerable<Product> GetAll()
+        public override IEnumerable<Product> GetAll()
         {
-            using (SqlCommand cmdGet = c.CreateCommand())
+            using (SqlCommand cmdGet = getConnection().CreateCommand())
             {
                 cmdGet.CommandText = SQL_GET_ALL;
                 using (SqlDataReader dr = cmdGet.ExecuteReader())
@@ -91,7 +86,7 @@ namespace NorthwindDataMappers
                     while (dr.Read())
                     {
                         Product newProd = new Product(
-                            (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3], suppMapper.GetById((int) dr[4]));
+                            (int)dr[0], (string)dr[1], (decimal)dr[2], (short)dr[3], suppMapper.GetById((int)dr[4]));
                         yield return newProd;
                     }
                 }
@@ -99,16 +94,11 @@ namespace NorthwindDataMappers
 
         }
 
-        public void Update(Product val)
+        public override void Update(Product p)
         {
-            Update(val, null);
-        }
-
-        public void Update(Product p, SqlTransaction trx)
-        {
-            using (SqlCommand cmdUpdate = sqlUpdate(c))
+            using (SqlCommand cmdUpdate = sqlUpdate(getConnection()))
             {
-                if(trx != null) 
+                if (trx != null)
                     cmdUpdate.Transaction = trx;
                 cmdUpdate.Parameters["@ProductName"].Value = p.ProductName;
                 cmdUpdate.Parameters["@UnitPrice"].Value = p.UnitPrice;
@@ -120,28 +110,25 @@ namespace NorthwindDataMappers
         }
 
 
-        public void Delete(Product val)
+        public override void Delete(Product val)
         {
             throw new NotImplementedException();
         }
 
-        public void Insert(Product val) {
-            Insert(val, null);
-        }
-
-        public void Insert(Product val, SqlTransaction trx)
+        public override void Insert(Product val)
         {
-            using (SqlCommand cmdInsert = sqlInsert(c))
+            using (SqlCommand cmdInsert = sqlInsert(getConnection()))
             {
                 cmdInsert.Parameters["@ProductName"].Value = val.ProductName;
                 cmdInsert.Parameters["@UnitPrice"].Value = val.UnitPrice;
                 cmdInsert.Parameters["@UnitsInStock"].Value = val.UnitsInStock;
-                if(trx != null) 
+                cmdInsert.Parameters["@SupplierID"].Value = val.Supplier.SupplierID;
+                if (trx != null)
                     cmdInsert.Transaction = trx;
                 val.ProductID = (int)cmdInsert.ExecuteScalar();
             }
 
         }
-
     }
+
 }

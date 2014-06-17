@@ -10,34 +10,19 @@ namespace NorthwindTests
     public class TestProducts
     {
 
-        private SqlConnection c;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            c = new SqlConnection();
-            c.ConnectionString = @"
+        private string connstr = @"
                     Data Source=DRAGAO\SQLEXPRESS;
 				    Initial Catalog=Northwind;
                     Integrated Security=True";
-            c.Open();
-        }
-
-        [TestCleanup]
-        public void TearDown()
-        {
-            if (c != null)
-            {
-                c.Dispose();
-                c = null;
-            }
-        }
+            
 
         [TestMethod]
         public void test_products_query_count()
         {
-            ProductDataMapper mapper = new ProductDataMapper(c, new SupplierDataMapper(c));
-            Assert.AreEqual(77, mapper.GetAll().Count());
+            using (ProductDataMapper mapper = new ProductDataMapper(connstr, new SupplierDataMapper(connstr)))
+            {
+                Assert.AreEqual(77, mapper.GetAll().Count());
+            }
             
         }
 
@@ -45,44 +30,48 @@ namespace NorthwindTests
         [TestMethod]
         public void test_product_insert()
         {
-            Product prod = new Product();
-            prod.ProductName = "Enlatados";
-            prod.UnitPrice = 78.9m;
-            prod.UnitsInStock = 100;
-
-
-            using (SqlTransaction trx = c.BeginTransaction())
+            using (SupplierDataMapper mapperSup = new SupplierDataMapper(connstr))
             {
+                Product prod = new Product();
+                prod.ProductName = "Enlatados";
+                prod.UnitPrice = 78.9m;
+                prod.UnitsInStock = 100;
+                prod.Supplier = mapperSup.GetById(7);
 
-                ProductDataMapper mapper = new ProductDataMapper(c, new SupplierDataMapper(c));
-                mapper.Insert(prod, trx);
+                using (ProductDataMapper mapper = new ProductDataMapper(connstr, mapperSup))
+                {
+                    mapper.BeginTrx();
+                    mapper.Insert(prod);
 
-                Product newProd = mapper.GetById(prod.ProductID, trx);
+                    Product newProd = mapper.GetById(prod.ProductID);
 
-                Assert.AreEqual(prod.ProductID, newProd.ProductID);
-                Assert.AreEqual(prod.UnitPrice, newProd.UnitPrice);
-                Assert.AreEqual(prod.UnitsInStock, newProd.UnitsInStock);
-                Assert.AreEqual(prod.ProductName, newProd.ProductName);
-                
-                trx.Rollback();
+                    Assert.AreEqual(prod.ProductID, newProd.ProductID);
+                    Assert.AreEqual(prod.UnitPrice, newProd.UnitPrice);
+                    Assert.AreEqual(prod.UnitsInStock, newProd.UnitsInStock);
+                    Assert.AreEqual(prod.ProductName, newProd.ProductName);
+
+                    mapper.Rollback();
+                }
             }
         }
 
         [TestMethod]
         public void test_product_price_update()
         {
-            using (SqlTransaction trx = c.BeginTransaction())
+
+            using (ProductDataMapper mapper = new ProductDataMapper(connstr, new SupplierDataMapper(connstr)))
             {
-                ProductDataMapper mapper = new ProductDataMapper(c, new SupplierDataMapper(c));
-                Product p = mapper.GetById(7, trx);  // 1. Fetch de um Product da BD
+                mapper.BeginTrx();
+             
+                Product p = mapper.GetById(7);  // 1. Fetch de um Product da BD
                 Assert.AreEqual(30.0m, p.UnitPrice); // 2. confirmamos o estado inicial de product
                 
                 p.UnitPrice = 78;                    // 3. Act o objecto de domínio
-                mapper.Update(p, trx);               // 4. Act a BD em conformidade com o objecto de domínio
-                Product newProd = mapper.GetById(7, trx);          // 5. Novo fetch da BD
+                mapper.Update(p);               // 4. Act a BD em conformidade com o objecto de domínio
+                Product newProd = mapper.GetById(7);          // 5. Novo fetch da BD
                 Assert.AreEqual(p.UnitPrice, newProd.UnitPrice);   // 6. Confirmar que a BD foi mesmo alterada através do objecto de domínio
                 
-                trx.Rollback();
+                mapper.Rollback();
             }
         }
 
